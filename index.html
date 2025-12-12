@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CBM Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+        h2 { margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; background: #fff; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background: #e0e0e0; }
+        button { padding: 8px 14px; margin-top: 10px; cursor: pointer; }
+        .add-row { background: #4CAF50; color: #fff; border: none; }
+        .export { background: #2196F3; color: #fff; border: none; }
+        input { width: 90%; padding: 4px; }
+    </style>
+</head>
+<body>
+
+<h2>CBM Calculator</h2>
+
+<table id="cbmTable">
+    <thead>
+        <tr>
+            <th>No.</th>
+            <th>Width (cm)</th>
+            <th>Length (cm)</th>
+            <th>Height (cm)</th>
+            <th>MEASUREMENT (M³)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td><input type="number" class="w" /></td>
+            <td><input type="number" class="l" /></td>
+            <td><input type="number" class="h" /></td>
+            <td class="cbm">0.000</td>
+        </tr>
+    </tbody>
+</table>
+
+<button class="add-row" onclick="addRow()">+</button>
+<button class="export" onclick="exportExcel()">Export Excel</button>
+
+<script>
+function calcCBM(row) {
+    const w = parseFloat(row.querySelector('.w').value) || 0;
+    const l = parseFloat(row.querySelector('.l').value) || 0;
+    const h = parseFloat(row.querySelector('.h').value) || 0;
+
+    const cbm = (w * l * h) / 1000000;
+    row.querySelector('.cbm').innerText = cbm.toFixed(3);
+}
+
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('w') ||
+        e.target.classList.contains('l') ||
+        e.target.classList.contains('h')) {
+        calcCBM(e.target.closest('tr'));
+    }
+});
+
+function addRow() {
+    const table = document.querySelector('#cbmTable tbody');
+    const rowCount = table.rows.length + 1;
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${rowCount}</td>
+        <td><input type="number" class="w"></td>
+        <td><input type="number" class="l"></td>
+        <td><input type="number" class="h"></td>
+        <td class="cbm">0.000</td>
+    `;
+    table.appendChild(row);
+}
+
+function exportExcel() {
+    let csv = [];
+    const rows = document.querySelectorAll('#cbmTable tr');
+
+    rows.forEach(row => {
+        const cols = row.querySelectorAll('td, th');
+        let rowData = [];
+
+        cols.forEach(col => {
+            if (col.querySelector('input')) {
+                rowData.push(col.querySelector('input').value);
+            } else {
+                rowData.push(col.innerText.replace("M³", "M³"));
+            }
+        });
+
+        csv.push(rowData.join(","));
+    });
+
+    const blob = new Blob(["\uFEFF" + csv.join("\n")], { type: 'text/csv;charset=utf-8;' });
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cbm_export.csv';
+    a.click();
+}
+</script>
+
+</body>
+</html>
